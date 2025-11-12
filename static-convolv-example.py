@@ -1,21 +1,24 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
+from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
+
+plt.style.use('standard.mplstyle')
 
 # Energy range
 energy = np.linspace(-15, 15, 200)
 sigma_Constant = 1.5
 delta_E = np.diff(energy)[0]
 
-# Define functions
+# Functions
 def signal(E, sigma):
-    return (1/(sigma*np.sqrt(2*np.pi))) * np.exp(-(E**2 / (2*sigma**2)))
+    return (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(-(E**2) / (2 * sigma**2))
 
 def kernel(E, sigma):
-    return (1/(sigma*np.sqrt(2*np.pi))) * np.exp(-((E)**2 / (2*sigma**2)))
+    return (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(-(E**2) / (2 * sigma**2))
 
 def shifted_kernel(E, sigma, shift):
-    return (1/(sigma*np.sqrt(2*np.pi))) * np.exp(-((E-shift)**2 / (2*sigma**2)))
+    return (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(-((E - shift)**2) / (2 * sigma**2))
 
 # Compute signal and kernel
 signal_vals = signal(energy, sigma_Constant)
@@ -25,54 +28,67 @@ kernel_vals = kernel(energy, sigma_Constant)
 conv = np.convolve(signal_vals, kernel_vals, mode='same') * delta_E
 conv_energy = energy
 
-# Define the shifts we’ll visualize
+# Shifts and products
 shift_values = [-4, -2, 0, 2]
 area_scatter = []
+products = []
 
-# --- Create Grid Layout (2x2 above, 1x2 below) ---
-fig = plt.figure(figsize=(12, 8))
-gs = GridSpec(3, 2, figure=fig, height_ratios=[1, 1, 0.8])
-
-# Create axes for the four product plots
-axes_products = [fig.add_subplot(gs[i//2, i%2]) for i in range(4)]
-
-# Create axis for convolution (spans bottom row)
-ax_conv = fig.add_subplot(gs[2, :])
-
-# --- Loop over shifts to create product plots ---
-for i, shift_value in enumerate(shift_values):
-    ax = axes_products[i]
-
-    # Shifted kernel and product
+for shift_value in shift_values:
     kernel_shift = shifted_kernel(energy, sigma_Constant, shift_value)
     product = signal_vals * kernel_shift
     area = np.trapz(product, energy)
+    products.append(product)
     area_scatter.append(area)
 
-    # Plot signal, shifted kernel, and product
-    ax.plot(energy, signal_vals, label='Signal', linestyle="--")
-    ax.plot(energy, kernel_shift, label=f'Kernel (shift={shift_value})', color = 'red', linestyle=":")
-    ax.plot(energy, product, color='black', label='Product')
-    ax.fill_between(energy, product, color='yellow', alpha=0.3,
-                    label=f'Area = {area:.4f}')
-    ax.set_xlim(-10,10)
-    ax.set_title(f'Shift = {shift_value}')
-    ax.set_xlabel('Epsilon')
-    ax.set_ylabel('Amplitude')
-    ax.legend(fontsize=8)
-    ax.grid(True)
+# --- Create one big 4x2 figure ---
+fig, axes = plt.subplots(4, 2, figsize=(7, 9), sharey='col', sharex=True)
+#fig.suptitle("Signal × Kernel Products and Convolved Signal", fontsize=16)
 
-# --- Convolution plot ---
-ax_conv.plot(conv_energy, conv, color='black', label='Convolved Signal')
-ax_conv.plot(conv_energy, signal_vals, color='red', label='Signal', linestyle="--")
-ax_conv.scatter(shift_values, area_scatter, color='blue', s=80, zorder=5,
-                label='Points of intergral product')
-ax_conv.set_title('Convolution of Signal and Kernel')
-ax_conv.set_xlabel('Energy')
-ax_conv.set_ylabel('Amplitude')
-ax_conv.set_xlim(-10,10)
-ax_conv.legend()
-ax_conv.grid(True)
+for i, shift_value in enumerate(shift_values):
+    # --- Left column: product plots ---
+    ax_left = axes[i, 0]
+    kernel_shift = shifted_kernel(energy, sigma_Constant, shift_value)
+    ax_left.plot(energy, signal_vals, linestyle="--", color='red')
+    ax_left.plot(energy, kernel_shift, color='red', linestyle=":")
+    ax_left.plot(energy, products[i], color='orange')
+    
+    # Fill and label area inside plot
+    ax_left.fill_between(energy, products[i], color='yellow', alpha=0.3)
+    max_product = max(products[i])
+    ax_left.text(2.3, 0.185, f'Area = \n {area_scatter[i]:.2f}', color='black', fontsize=16)
+    
+    ax_left.set_xlim(-10, 10)
+    ax_left.set_title(f'Shift = {shift_value}')
+    ax_left.grid(True)
 
-plt.tight_layout()
+    # --- Right column: convolution + signal ---
+    ax_right = axes[i, 1]
+    ax_right.plot(conv_energy, conv, color='black')
+    ax_right.plot(conv_energy, signal_vals, color='red', linestyle="--")
+    
+    # Scatter point and coordinates
+    ax_right.scatter(shift_value, area_scatter[i], color='blue', s=80, zorder=5)
+    ax_right.text(shift_value + 0.4, area_scatter[i],
+                  f'({shift_value:.1f}, {area_scatter[i]:.3f})',
+                  fontsize=16, color='blue')
+    
+    ax_right.set_xlim(-10, 10)
+    ax_right.set_title(f'Convolution')
+    ax_right.grid(True)
+
+# Shared axis labels
+fig.text(0.04, 0.5, 'Amplitude', va='center', rotation='vertical', fontsize=22)
+fig.text(0.5, 0.04, 'Energy', ha='center', fontsize=22)
+
+# --- Manual legend (without the point) ---
+legend_elements = [
+    Line2D([0], [0], color='orange', linestyle='--', label='Signal'),
+    Line2D([0], [0], color='red', linestyle=':', label='Shifted Kernel'),
+    Line2D([0], [0], color='orange', label='Product'),
+    Line2D([0], [0], color='black', label='Convolved Signal')
+]
+
+fig.legend(handles=legend_elements, loc='outside upper right', frameon=True, mode='expand', ncols=4)
+
+fig.tight_layout(rect=[0.06, 0.06, 0.95, 0.95])
 plt.show()

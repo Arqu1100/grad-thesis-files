@@ -30,9 +30,10 @@ ytick.labelsize : 22
 
 #axis stuff
 axes.labelsize : 32
+axes.titlesize : 22
 
 #legend
-legend.fontsize : 22
+legend.fontsize : 12
 
 #fonts
 font.family : Sans-Serif
