@@ -50,9 +50,9 @@ for name, group in hydro3.groupby('author1'):
 
 
 carbon12_legend = mlines.Line2D([], [], color='lightsteelblue', marker='o', linestyle='None',
-                            markersize=10, label='H2(p,y)He3')
+                            markersize=10, label=r'$^2$H(p,$\gamma$)$^3$He')
 
-carbon13_legend = mlines.Line2D([], [], color='navy', linestyle='None',marker="s", markerfacecolor="None", label='H3(p,y)He4', markersize=10, markeredgewidth=2)
+carbon13_legend = mlines.Line2D([], [], color='navy', linestyle='None',marker="s", markerfacecolor="None", label=r'$^3$H(p,$\gamma$)$^4$He', markersize=10, markeredgewidth=2)
 
 
 
@@ -68,7 +68,7 @@ plt.xlim(10**(-3), 10**(0))
 plt.tick_params(axis='both', labelsize=32)
 plt.yscale("log")
 plt.xscale("log")
-plt.title('Cross-section Data of Carbon Isotopes')
+
 plt.grid(True)
 plt.show()
 

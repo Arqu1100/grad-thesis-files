@@ -49,8 +49,8 @@ for i, shift_value in enumerate(shift_values):
     ax_left = axes[i, 0]
     kernel_shift = shifted_kernel(energy, sigma_Constant, shift_value)
     ax_left.plot(energy, signal_vals, linestyle="--", color='red')
-    ax_left.plot(energy, kernel_shift, color='red', linestyle=":")
-    ax_left.plot(energy, products[i], color='orange')
+    ax_left.plot(energy, kernel_shift, color='blue', linestyle=":")
+    ax_left.plot(energy, products[i], color='green')
     
     # Fill and label area inside plot
     ax_left.fill_between(energy, products[i], color='yellow', alpha=0.3)
@@ -82,13 +82,13 @@ fig.text(0.5, 0.04, 'Energy', ha='center', fontsize=22)
 
 # --- Manual legend (without the point) ---
 legend_elements = [
-    Line2D([0], [0], color='orange', linestyle='--', label='Signal'),
-    Line2D([0], [0], color='red', linestyle=':', label='Shifted Kernel'),
-    Line2D([0], [0], color='orange', label='Product'),
+    Line2D([0], [0], color='red', linestyle='--', label='Signal'),
+    Line2D([0], [0], color='blue', linestyle=':', label='Shifted Kernel'),
+    Line2D([0], [0], color='green', label='Product'),
     Line2D([0], [0], color='black', label='Convolved Signal')
 ]
 
-fig.legend(handles=legend_elements, loc='outside upper right', frameon=True, mode='expand', ncols=4)
+fig.legend(handles=legend_elements, loc='outside upper right', frameon=True, mode='expand', ncols=4, fontsize=22)
 
 fig.tight_layout(rect=[0.06, 0.06, 0.95, 0.95])
 plt.show()
